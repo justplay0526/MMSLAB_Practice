@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
                 binding.tvText.text = "請輸入姓名以開始遊戲"
                 return@setOnClickListener
             }
-            val  playerName = binding.edName.text
+            val playerName = binding.edName.text
             val comMora = (Math.random() * 3).toInt()
             val  playerMoraText = when {
                 binding.btnScissor.isChecked -> "剪刀"
