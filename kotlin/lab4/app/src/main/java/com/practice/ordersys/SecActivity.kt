@@ -18,7 +18,7 @@ class SecActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener{
             if (binding.edDrink.length() < 1){
                 Toast.makeText(this, "請輸入飲料名稱", Toast.LENGTH_SHORT).show()
-            }else{
+            } else{
                 val b = Bundle()
                 b.putString("drink", binding.edDrink.text.toString())
                 b.putString("sugar", binding.rgSugar.findViewById<RadioButton>(binding.rgSugar.checkedRadioButtonId).text.toString())
