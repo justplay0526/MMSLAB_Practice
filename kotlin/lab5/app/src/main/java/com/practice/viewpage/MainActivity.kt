@@ -4,7 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.practice.viewpage.databinding.ActivityMainBinding
 
@@ -16,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Log.e("MainActivity","onCreate")
-        val adapter = ViewPageAdapter(this)
+        val adapter = ViewPageAdapter(supportFragmentManager, lifecycle)
         binding.viewPager.adapter = adapter
     }
 
@@ -51,11 +52,12 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-class ViewPageAdapter(fma: FragmentActivity) : FragmentStateAdapter(fma){
+class ViewPageAdapter(fm:FragmentManager, lc: Lifecycle) : FragmentStateAdapter(fm, lc){
     override fun createFragment(position: Int): Fragment = when(position) {
         0 -> FirstFragment()
         1 -> SecondFragment()
-        else -> ThirdFragment()
+        2 -> ThirdFragment()
+        else -> throw IllegalArgumentException("Invalid position")
     }
     override fun getItemCount(): Int = 3
 }
