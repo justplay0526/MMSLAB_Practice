@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnPhoto.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             try {
-                startActivityForResult(intent, 0)
+                startActivityForResult(intent, 0)// Deprecated
             } catch (e: ActivityNotFoundException){
                 Toast.makeText(this, "此裝置無相機應用程式", Toast.LENGTH_SHORT).show()
             }
