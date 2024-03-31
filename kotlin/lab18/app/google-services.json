@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "428436716863",
+    "project_id": "androidlab18-6c972",
+    "storage_bucket": "androidlab18-6c972.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:428436716863:android:64f7b7d42a3a01a793a78a",
+        "android_client_info": {
+          "package_name": "com.practice.messageservice"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzKuvVoPoEER_DHWFaXHTTYij-ZOxatX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
