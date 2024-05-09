@@ -6,10 +6,57 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <EditText
+        android:id="@+id/ed_search"
+        android:hint="名稱、地址搜尋"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_margin="8dp"
+        android:paddingStart="16dp"
+        android:inputType="text"
+        android:textColorHint="#E0E0E0"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/rounded_ed_bg"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_search"/>
+
+    <android.widget.Button
+        android:id="@+id/btn_search"
+        android:text="搜尋"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_btn_bg"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:padding="0dp"
+        app:layout_constraintTop_toTopOf="@id/ed_search"
+        app:layout_constraintBottom_toBottomOf="@id/ed_search"
+        app:layout_constraintEnd_toStartOf="@id/btn_history"/>
+
+    <android.widget.Button
+        android:id="@+id/btn_history"
+        android:text="搜尋紀錄"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_btn_bg"
+        android:layout_marginEnd="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:padding="0dp"
+        app:layout_constraintTop_toTopOf="@id/ed_search"
+        app:layout_constraintBottom_toBottomOf="@id/ed_search"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <fragment
         android:id="@+id/maps"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ed_search" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

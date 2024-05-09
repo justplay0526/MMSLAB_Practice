@@ -4,9 +4,11 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onRequestPermissionsResult(
@@ -37,12 +39,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 this,
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 0
             )
+        } else {
+            map.isMyLocationEnabled = true
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                LatLng(25.035, 121.54), 13f
+            ))
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        loadMap()
     }
     private fun loadMap(){
         val map = supportFragmentManager.findFragmentById(R.id.maps)
