@@ -70,6 +70,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val drawable = resources.getDrawable(R.drawable.edit_cancel)
+        drawable.setBounds(0,0,75, 75)
+        binding.edSearch.setCompoundDrawables(null,null,drawable,null)
         loadMap()
     }
     //載入地圖
