@@ -14,6 +14,7 @@
         android:layout_margin="8dp"
         android:paddingStart="16dp"
         android:inputType="text"
+        android:drawableRight="@drawable/clean_search"
         android:textColorHint="#E0E0E0"
         android:textColor="#FFFFFF"
         android:background="@drawable/rounded_ed_bg"
