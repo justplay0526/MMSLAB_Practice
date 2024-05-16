@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         drawable.setBounds(0,0,75, 75)
         binding.edSearch.setCompoundDrawables(null,null,drawable,null)
         loadMap()
+        sendRequest()
     }
     //載入地圖
     private fun loadMap(){
@@ -104,20 +105,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun showDialog(myObject: MyObject){
-        val items = arrayOfNulls<String>(myObject.result.content.size)
-        myObject.result.content.forEachIndexed { index, data ->
-            //items[index] = "地區：${data.sitename}, 狀態：${data.status}"
+        val items = arrayOfNulls<String>(myObject.results.content.size)
+        myObject.results.content.forEachIndexed { index, data ->
+            items[index] = "Name:${data.name},Lat：${data.lat}, Lng：${data.lng}"
         }
         runOnUiThread{
             AlertDialog.Builder(this)
-                .setTitle("台灣各地空氣品質")
+                .setTitle("經緯度")
                 .setItems(items, null)
                 .show()
         }
     }
 
     class MyObject {
-        lateinit var result: Result
+        lateinit var results: Result
         class Result {
             lateinit var content: Array<Content>
             class Content {
@@ -125,12 +126,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 var lng = ""
                 var name = ""
                 var vincinity = ""
-                var photo = ""
-                lateinit var landscape: Array<LandScape>
-                class LandScape {
-                    var star = ""
-                }
-
             }
         }
     }
