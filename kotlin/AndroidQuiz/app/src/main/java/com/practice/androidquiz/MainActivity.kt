@@ -1,11 +1,9 @@
 package com.practice.androidquiz
 
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -23,6 +21,7 @@ import java.io.IOException
 
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+    private lateinit var maps: GoogleMap
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -52,6 +51,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 0
             )
         } else {
+            maps = map
             //顯示出能定位個人位置的按紐
             map.isMyLocationEnabled = true
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             marker.title("台北101")
             marker.draggable(true)
             map.addMarker(marker)
+
         }
     }
 
@@ -93,7 +94,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
                 val myObject = Gson().fromJson(json, MyObject::class.java)
-                showDialog(myObject)
+                val marker = MarkerOptions()
+                runOnUiThread {
+                    myObject.results.content.forEach { data ->
+                        marker.position(LatLng(data.lat.toDouble(), data.lng.toDouble()))
+                        marker.title(data.name)
+                        marker.draggable(true)
+                        maps.addMarker(marker)
+                    }
+                }
+
             }
 
             override fun onFailure(call: Call, e: IOException) {
@@ -102,19 +112,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         })
-    }
-
-    private fun showDialog(myObject: MyObject){
-        val items = arrayOfNulls<String>(myObject.results.content.size)
-        myObject.results.content.forEachIndexed { index, data ->
-            items[index] = "Name:${data.name},Lat：${data.lat}, Lng：${data.lng}"
-        }
-        runOnUiThread{
-            AlertDialog.Builder(this)
-                .setTitle("經緯度")
-                .setItems(items, null)
-                .show()
-        }
     }
 
     class MyObject {
