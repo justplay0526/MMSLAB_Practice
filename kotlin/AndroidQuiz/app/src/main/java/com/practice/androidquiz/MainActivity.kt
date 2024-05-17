@@ -2,7 +2,9 @@ package com.practice.androidquiz
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -57,13 +59,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 LatLng(25.035, 121.54), 13f
             ))
-            //增加地圖大頭針
-            val marker = MarkerOptions()
-            marker.position(LatLng(25.033611, 121.565000))
-            marker.title("台北101")
-            marker.draggable(true)
-            map.addMarker(marker)
-
         }
     }
 
@@ -76,6 +71,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.edSearch.setCompoundDrawables(null,null,drawable,null)
         loadMap()
         sendRequest()
+
+        binding.btnSearch.setOnClickListener {
+            if (binding.edSearch.text.isEmpty()){
+                Toast.makeText(this@MainActivity, "請輸入名稱或地址",Toast.LENGTH_SHORT).show()
+            } else{
+                showCustomDialog()
+            }
+        }
     }
     //載入地圖
     private fun loadMap(){
@@ -112,6 +115,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         })
+    }
+
+    private fun showCustomDialog(){
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom, null)
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        // 建立 AlertDialog
+        val dialog = builder.create()
+        dialog.show()
     }
 
     class MyObject {
