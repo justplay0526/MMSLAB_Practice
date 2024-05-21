@@ -1,8 +1,14 @@
 package com.practice.androidquiz
 
+import android.content.Context
 import android.content.pm.PackageManager
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteDatabase.CursorFactory
+import android.database.sqlite.SQLiteOpenHelper
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -24,6 +30,9 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var maps: GoogleMap
+    private var dbItems: ArrayList<String> = ArrayList()
+    private lateinit var dbAdapter: ArrayAdapter<String>
+    private lateinit var dbrw: SQLiteDatabase
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -66,11 +75,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        //設定搜尋欄清除鍵圖示及其大小
         val drawable = resources.getDrawable(R.drawable.edit_cancel)
         drawable.setBounds(0,0,75, 75)
         binding.edSearch.setCompoundDrawables(null,null,drawable,null)
+        //載入地圖
         loadMap()
+        //接入 API 資料
         sendRequest()
+        //取得資料庫實體
+        dbrw = MyDBHelper(this).writableDatabase
+        //宣告Adapter
+        dbAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1)
+        findViewById<ListView>(R.id.lsv_sql).adapter = dbAdapter
 
         binding.btnSearch.setOnClickListener {
             if (binding.edSearch.text.isEmpty()){
@@ -79,6 +96,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 showCustomDialog()
             }
         }
+    }
+
+    override fun onDestroy() {
+        dbrw.close()
+        super.onDestroy()
     }
     //載入地圖
     private fun loadMap(){
@@ -121,6 +143,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom, null)
         val builder = AlertDialog.Builder(this)
         builder.setView(dialogView)
+        builder.setCancelable(true)
         // 建立 AlertDialog
         val dialog = builder.create()
         dialog.show()
@@ -136,6 +159,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 var name = ""
                 var vincinity = ""
             }
+        }
+    }
+    class MyDBHelper(
+        context: Context,
+        name: String = database,
+        factory: CursorFactory ?= null,
+        version: Int = v
+    ): SQLiteOpenHelper(context, name, factory, version) {
+        companion object{
+            private const val database = "myDatabase"
+            private const val v = 1
+        }
+
+        override fun onCreate(db: SQLiteDatabase?) {
+            db?.execSQL("CREATE TABLE myTable(name text PRIMARY KEY,locate text NOT NULL)")
+        }
+
+        override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+            db?.execSQL("DROP TABLE IF EXISTS myTable")
+            onCreate(db)
         }
     }
 }
