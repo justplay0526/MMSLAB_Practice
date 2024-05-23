@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -30,6 +31,7 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var maps: GoogleMap
+    private lateinit var apiObj: MyObject
     private var dbItems: ArrayList<String> = ArrayList()
     private lateinit var dbAdapter: ArrayAdapter<String>
     private lateinit var dbrw: SQLiteDatabase
@@ -85,16 +87,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         sendRequest()
         //取得資料庫實體
         dbrw = MyDBHelper(this).writableDatabase
-        //宣告Adapter
-        dbAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1)
-        findViewById<ListView>(R.id.lsv_sql).adapter = dbAdapter
-
         binding.btnSearch.setOnClickListener {
             if (binding.edSearch.text.isEmpty()){
                 Toast.makeText(this@MainActivity, "請輸入名稱或地址",Toast.LENGTH_SHORT).show()
             } else{
                 showCustomDialog()
             }
+        }
+
+        binding.btnHistory.setOnClickListener {
+            showHistoryDialog()
         }
     }
 
@@ -119,6 +121,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
                 val myObject = Gson().fromJson(json, MyObject::class.java)
+                apiObj = myObject
                 val marker = MarkerOptions()
                 runOnUiThread {
                     myObject.results.content.forEach { data ->
@@ -147,6 +150,39 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         // 建立 AlertDialog
         val dialog = builder.create()
         dialog.show()
+
+        //宣告Adapter
+        dbAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,dbItems)
+        findViewById<ListView>(R.id.lsv_sql).adapter = dbAdapter
+        val queryString = "SELECT * FROM myTable WHERE name LIKE '${apiObj.findContentsByKeyword(
+            binding.edSearch.text.toString())}'"
+        val c = dbrw.rawQuery(queryString, null)
+        if(c.count == 0){
+            dbrw.execSQL("INSERT INTO myTable(name, locate) VALUES(?, ?)", arrayOf(apiObj.findContentsByKeyword(
+                binding.edSearch.text.toString())))
+        }else {
+            c.moveToFirst()
+            dbItems.clear()
+            for (i in 0 until c.count){
+                dbItems.add("${c.getString(0)}\n ${c.getString(1)}")
+                c.moveToNext()//移動到下一筆
+            }
+            dbAdapter.notifyDataSetChanged()//更新列表資料
+            c.close()//關閉cursor
+        }
+    }
+
+    private fun showHistoryDialog(){
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_history, null)
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        builder.setCancelable(true)
+        // 建立 AlertDialog
+        val dialog = builder.create()
+        dialog.show()
+        findViewById<Button>(R.id.btn_clear).setOnClickListener {
+            dbrw.execSQL("DELETE FROM myTable")
+        }
     }
 
     class MyObject {
@@ -159,6 +195,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 var name = ""
                 var vincinity = ""
             }
+        }
+        // 添加方法根據 name 關鍵字查找 Content
+        fun findContentsByKeyword(keyword: String): List<Result.Content> {
+            return results.content.filter { it.name.contains(keyword, ignoreCase = true) }
         }
     }
     class MyDBHelper(
