@@ -20,7 +20,7 @@
         android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"/>
     <ListView
-        android:id="@+id/lsv_sql"
+        android:id="@+id/lsv_history"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"

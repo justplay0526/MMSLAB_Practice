@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CursorFactory
 import android.database.sqlite.SQLiteOpenHelper
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -31,8 +32,8 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var maps: GoogleMap
-    private lateinit var apiObj: MyObject
     private var dbItems: ArrayList<String> = ArrayList()
+    private lateinit var apiObj: MyObject
     private lateinit var dbAdapter: ArrayAdapter<String>
     private lateinit var dbrw: SQLiteDatabase
     override fun onRequestPermissionsResult(
@@ -87,6 +88,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         sendRequest()
         //取得資料庫實體
         dbrw = MyDBHelper(this).writableDatabase
+        MyDBHelper(this).clearDatabase(dbrw)
         binding.btnSearch.setOnClickListener {
             if (binding.edSearch.text.isEmpty()){
                 Toast.makeText(this@MainActivity, "請輸入名稱或地址",Toast.LENGTH_SHORT).show()
@@ -101,8 +103,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     override fun onDestroy() {
-        dbrw.close()
         super.onDestroy()
+        dbrw.close()
     }
     //載入地圖
     private fun loadMap(){
@@ -153,23 +155,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         //宣告Adapter
         dbAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,dbItems)
-        findViewById<ListView>(R.id.lsv_sql).adapter = dbAdapter
-        val queryString = "SELECT * FROM myTable WHERE name LIKE '${apiObj.findContentsByKeyword(
-            binding.edSearch.text.toString())}'"
-        val c = dbrw.rawQuery(queryString, null)
-        if(c.count == 0){
-            dbrw.execSQL("INSERT INTO myTable(name, locate) VALUES(?, ?)", arrayOf(apiObj.findContentsByKeyword(
-                binding.edSearch.text.toString())))
-        }else {
-            c.moveToFirst()
-            dbItems.clear()
-            for (i in 0 until c.count){
-                dbItems.add("${c.getString(0)}\n ${c.getString(1)}")
-                c.moveToNext()//移動到下一筆
+        val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
+        lsvSql.adapter = dbAdapter
+        dbItems.clear()
+        dbItems.add("測試")
+        dbAdapter.notifyDataSetChanged()//更新列表資料
+        val (names, vicinitys) = apiObj.findContentsByKeyword(binding.edSearch.text.toString())
+        Log.e("MainAct", "$names")
+        Log.e("MainAct", "$vicinitys")
+        for (i in names.indices){
+            val queryString = "SELECT * FROM myTable WHERE name LIKE '${names[i]}'"
+            dbrw.rawQuery(queryString, null).use {c ->
+                if (c.moveToFirst()) {
+                    do {
+                        dbItems.add("${c.getString(0)}\t${c.getString(1)}")
+                    } while (c.moveToNext())
+                } else {
+                    dbrw.execSQL("INSERT INTO myTable(name, locate) VALUES(?, ?)", arrayOf(names[i], vicinitys[i]))
+                    Log.e("MainAct", "${names[i]}")
+                    Log.e("MainAct", "${vicinitys[i]}")
+                }
+                c.close()
             }
-            dbAdapter.notifyDataSetChanged()//更新列表資料
-            c.close()//關閉cursor
         }
+        dbAdapter.notifyDataSetChanged()//更新列表資料
+        Log.e("MainAct", "${dbItems.first()}")
+        Log.e("MainAct", "${dbItems.last()}")
     }
 
     private fun showHistoryDialog(){
@@ -180,7 +191,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         // 建立 AlertDialog
         val dialog = builder.create()
         dialog.show()
-        findViewById<Button>(R.id.btn_clear).setOnClickListener {
+        dialogView.findViewById<Button>(R.id.btn_clear).setOnClickListener {
             dbrw.execSQL("DELETE FROM myTable")
         }
     }
@@ -193,12 +204,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 var lat = ""
                 var lng = ""
                 var name = ""
-                var vincinity = ""
+                var vicinity = ""
             }
         }
         // 添加方法根據 name 關鍵字查找 Content
-        fun findContentsByKeyword(keyword: String): List<Result.Content> {
-            return results.content.filter { it.name.contains(keyword, ignoreCase = true) }
+        fun findContentsByKeyword(keyword: String): Pair<List<String>, List<String>> {
+            val filterContents = results.content.filter { it.name.contains(keyword, ignoreCase = true) }
+            val names = filterContents.map { it.name }
+            val vicinitys = filterContents.map { it.vicinity }
+            return Pair(names, vicinitys)
         }
     }
     class MyDBHelper(
@@ -213,12 +227,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         override fun onCreate(db: SQLiteDatabase?) {
-            db?.execSQL("CREATE TABLE myTable(name text PRIMARY KEY,locate text NOT NULL)")
+            db?.execSQL("CREATE TABLE IF NOT EXISTS myTable(name text PRIMARY KEY,locate text NOT NULL)")
         }
 
         override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
             db?.execSQL("DROP TABLE IF EXISTS myTable")
             onCreate(db)
+        }
+
+        fun clearDatabase(db: SQLiteDatabase?) {
+            db?.execSQL("DELETE FROM myTable")
         }
     }
 }

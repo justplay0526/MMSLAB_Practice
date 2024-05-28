@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.practice.sqllite.databinding.ActivityMainBinding
@@ -90,11 +91,13 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     "SELECT * FROM myTable WHERE book LIKE '${ed_book.text}'"
                 }
+                Log.e("MainAct", "${queryString}")
                 val cursor = dbrw.rawQuery(queryString, null)
                 cursor.moveToFirst()
                 items.clear()
                 showToast("共有${cursor.count}筆資料")
                 for (i in 0 until cursor.count){
+                    Log.e("MainAct", "${cursor.getString(0)}")
                     items.add("書名:${cursor.getString(0)}\t\t\t\t 價格:${cursor.getInt(1)}")
                     cursor.moveToNext()
                 }
