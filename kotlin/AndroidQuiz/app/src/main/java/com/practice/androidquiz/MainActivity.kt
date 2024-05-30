@@ -32,9 +32,11 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var maps: GoogleMap
-    private var dbItems: ArrayList<String> = ArrayList()
+    private var searchItems: ArrayList<String> = ArrayList()
+    private var historyItems: ArrayList<String> = ArrayList()
     private lateinit var apiObj: MyObject
-    private lateinit var dbAdapter: ArrayAdapter<String>
+    private lateinit var searchAdapter: ArrayAdapter<String>
+    private lateinit var historyAdapter: ArrayAdapter<String>
     private lateinit var dbrw: SQLiteDatabase
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -84,16 +86,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.edSearch.setCompoundDrawables(null,null,drawable,null)
         //載入地圖
         loadMap()
-        //接入 API 資料
-        sendRequest()
         //取得資料庫實體
         dbrw = MyDBHelper(this).writableDatabase
-        MyDBHelper(this).clearDatabase(dbrw)
+        //接入 API 資料
+        sendRequest()
         binding.btnSearch.setOnClickListener {
             if (binding.edSearch.text.isEmpty()){
                 Toast.makeText(this@MainActivity, "請輸入名稱或地址",Toast.LENGTH_SHORT).show()
             } else{
-                showCustomDialog()
+                showSearchDialog()
             }
         }
 
@@ -118,7 +119,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val req = okhttp3.Request.Builder()
             .url(url)
             .build()
-
+        Log.d("MainAct","get API")
         OkHttpClient().newCall(req).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
@@ -127,6 +128,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val marker = MarkerOptions()
                 runOnUiThread {
                     myObject.results.content.forEach { data ->
+                        val name = data.name
+                        val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name = ?", arrayOf(name))
+                        //檢查是否存在相同紀錄
+                        if (cursor.count == 0){
+                            dbrw.execSQL("INSERT INTO apiTable(name, vic, lat, lng ,read) VALUES(?, ?, ?, ?, ?)",
+                                arrayOf(data.name, data.vicinity, data.lat.toFloat(), data.lng.toFloat(), 0))
+                        }
+                        //關閉指標
+                        cursor.close()
+                        //將 marker 標註在地圖上
                         marker.position(LatLng(data.lat.toDouble(), data.lng.toDouble()))
                         marker.title(data.name)
                         marker.draggable(true)
@@ -144,8 +155,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
-    private fun showCustomDialog(){
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom, null)
+    private fun showSearchDialog(){
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_search, null)
         val builder = AlertDialog.Builder(this)
         builder.setView(dialogView)
         builder.setCancelable(true)
@@ -154,33 +165,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         dialog.show()
 
         //宣告Adapter
-        dbAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,dbItems)
+        searchAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,searchItems)
         val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
-        lsvSql.adapter = dbAdapter
-        dbItems.clear()
-        dbItems.add("測試")
-        dbAdapter.notifyDataSetChanged()//更新列表資料
+        lsvSql.adapter = searchAdapter
+        searchItems.clear()
         val (names, vicinitys) = apiObj.findContentsByKeyword(binding.edSearch.text.toString())
-        Log.e("MainAct", "$names")
-        Log.e("MainAct", "$vicinitys")
         for (i in names.indices){
-            val queryString = "SELECT * FROM myTable WHERE name LIKE '${names[i]}'"
-            dbrw.rawQuery(queryString, null).use {c ->
+            val queryString = "SELECT * FROM apiTable WHERE name LIKE ?"
+            dbrw.rawQuery(queryString, arrayOf(names[i])).use { c ->
                 if (c.moveToFirst()) {
                     do {
-                        dbItems.add("${c.getString(0)}\t${c.getString(1)}")
+                        searchItems.add("${c.getString(0)}\t${c.getString(1)}")
+                        dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${names[i]}'")
                     } while (c.moveToNext())
                 } else {
-                    dbrw.execSQL("INSERT INTO myTable(name, locate) VALUES(?, ?)", arrayOf(names[i], vicinitys[i]))
-                    Log.e("MainAct", "${names[i]}")
-                    Log.e("MainAct", "${vicinitys[i]}")
+                    dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${names[i]}'")
                 }
                 c.close()
             }
         }
-        dbAdapter.notifyDataSetChanged()//更新列表資料
-        Log.e("MainAct", "${dbItems.first()}")
-        Log.e("MainAct", "${dbItems.last()}")
+        searchAdapter.notifyDataSetChanged()//更新列表資料
+
     }
 
     private fun showHistoryDialog(){
@@ -191,8 +196,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         // 建立 AlertDialog
         val dialog = builder.create()
         dialog.show()
+
+        historyAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,historyItems)
+        val lsvHistory = dialogView.findViewById<ListView>(R.id.lsv_history)
+        historyItems.clear()
+        lsvHistory.adapter = historyAdapter
+        val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE read = 1", null)
+        cursor.moveToFirst()
+        for (i in 0 until cursor.count){
+            Log.d("MainAct","${cursor.getString(0)}&${cursor.getString(1)}")
+            historyItems.add("${cursor.getString(0)}\t${cursor.getString(1)}")
+            cursor.moveToNext()
+        }
+        historyAdapter.notifyDataSetChanged()
+        cursor.close()
+
         dialogView.findViewById<Button>(R.id.btn_clear).setOnClickListener {
-            dbrw.execSQL("DELETE FROM myTable")
+            dbrw.execSQL("DELETE FROM apiTable")
         }
     }
 
@@ -222,21 +242,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         version: Int = v
     ): SQLiteOpenHelper(context, name, factory, version) {
         companion object{
-            private const val database = "myDatabase"
+            private const val database = "apiDATABASE"
             private const val v = 1
         }
 
         override fun onCreate(db: SQLiteDatabase?) {
-            db?.execSQL("CREATE TABLE IF NOT EXISTS myTable(name text PRIMARY KEY,locate text NOT NULL)")
+            Log.d("DATABASE", "CREATED")
+            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real,read integer)")
         }
 
         override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-            db?.execSQL("DROP TABLE IF EXISTS myTable")
+            db?.execSQL("DROP TABLE IF EXISTS apiTable")
             onCreate(db)
-        }
-
-        fun clearDatabase(db: SQLiteDatabase?) {
-            db?.execSQL("DELETE FROM myTable")
         }
     }
 }
