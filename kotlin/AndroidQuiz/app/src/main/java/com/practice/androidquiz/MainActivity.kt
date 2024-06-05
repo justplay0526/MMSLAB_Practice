@@ -1,14 +1,16 @@
 package com.practice.androidquiz
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CursorFactory
 import android.database.sqlite.SQLiteOpenHelper
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.ArrayAdapter
+import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ListView
 import android.widget.Toast
@@ -32,10 +34,8 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var maps: GoogleMap
-    private var searchItems: ArrayList<String> = ArrayList()
-    private var historyItems: ArrayList<String> = ArrayList()
     private lateinit var searchAdapter: ListAdapter
-    private lateinit var historyAdapter: ArrayAdapter<String>
+    private lateinit var historyAdapter: ListAdapter
     private lateinit var dbrw: SQLiteDatabase
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -75,6 +75,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    @Suppress("DEPRECATION")
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -83,6 +85,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val drawable = resources.getDrawable(R.drawable.edit_cancel)
         drawable.setBounds(0,0,75, 75)
         binding.edSearch.setCompoundDrawables(null,null,drawable,null)
+
+        binding.edSearch.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                val clearDrawable: Drawable? = binding.edSearch.compoundDrawables[2] // 获取右边的 drawable
+                if (clearDrawable != null && event.rawX >= (binding.edSearch.right - binding.edSearch.paddingEnd - clearDrawable.bounds.width())) {
+                    binding.edSearch.text.clear()
+                    return@setOnTouchListener true
+                }
+            }
+            false
+        }
+
         //載入地圖
         loadMap()
         //取得資料庫實體
@@ -170,7 +184,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val name = c["name"] as String
                 dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${name}'")
             }
-
             //宣告Adapter
             searchAdapter = ListAdapter(this, results)
             val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
@@ -191,19 +204,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val dialog = builder.create()
             dialog.show()
 
-            historyAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,historyItems)
+            val results = mutableListOf<Map<String, Any>>()
+            historyAdapter = ListAdapter(this, results)
             val lsvHistory = dialogView.findViewById<ListView>(R.id.lsv_history)
-            historyItems.clear()
             lsvHistory.adapter = historyAdapter
 
-            cursor.moveToFirst()
-            for (i in 0 until cursor.count){
-                Log.d("MainAct","${cursor.getString(0)}&${cursor.getString(1)}")
-                historyItems.add("${cursor.getString(0)}\t${cursor.getString(1)}")
-                cursor.moveToNext()
+            while (cursor.moveToNext()) {
+                val result = mutableMapOf<String, Any>()
+                result["name"] = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                result["vic"] = cursor.getString(cursor.getColumnIndexOrThrow("vic"))
+                result["lat"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"))
+                result["lng"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
+                results.add(result)
             }
-            historyAdapter.notifyDataSetChanged()
             cursor.close()
+
+            historyAdapter.notifyDataSetChanged()
 
             dialogView.findViewById<Button>(R.id.btn_clear).setOnClickListener {
                 dbrw.execSQL("UPDATE apiTable SET READ = 0")
