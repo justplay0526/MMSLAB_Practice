@@ -124,7 +124,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
                 val myObject = Gson().fromJson(json, MyObject::class.java)
-                apiObj = myObject
                 val marker = MarkerOptions()
                 runOnUiThread {
                     myObject.results.content.forEach { data ->
@@ -169,51 +168,74 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
         lsvSql.adapter = searchAdapter
         searchItems.clear()
-        val (names, vicinitys) = apiObj.findContentsByKeyword(binding.edSearch.text.toString())
-        for (i in names.indices){
-            val queryString = "SELECT * FROM apiTable WHERE name LIKE ?"
-            dbrw.rawQuery(queryString, arrayOf(names[i])).use { c ->
-                if (c.moveToFirst()) {
-                    do {
-                        searchItems.add("${c.getString(0)}\t${c.getString(1)}")
-                        dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${names[i]}'")
-                    } while (c.moveToNext())
-                } else {
-                    dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${names[i]}'")
-                }
-                c.close()
-            }
-        }
-        searchAdapter.notifyDataSetChanged()//更新列表資料
 
+        val results = searchByName(binding.edSearch.text.toString())
+        results.forEach{c ->
+            val name = c["name"] as String
+            val vic = c["vic"] as String
+            searchItems.add("${name}\t${vic}")
+            dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${name}'")
+        }
+
+        searchAdapter.notifyDataSetChanged()//更新列表資料
     }
 
     private fun showHistoryDialog(){
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_history, null)
-        val builder = AlertDialog.Builder(this)
-        builder.setView(dialogView)
-        builder.setCancelable(true)
-        // 建立 AlertDialog
-        val dialog = builder.create()
-        dialog.show()
-
-        historyAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,historyItems)
-        val lsvHistory = dialogView.findViewById<ListView>(R.id.lsv_history)
-        historyItems.clear()
-        lsvHistory.adapter = historyAdapter
         val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE read = 1", null)
-        cursor.moveToFirst()
-        for (i in 0 until cursor.count){
-            Log.d("MainAct","${cursor.getString(0)}&${cursor.getString(1)}")
-            historyItems.add("${cursor.getString(0)}\t${cursor.getString(1)}")
-            cursor.moveToNext()
+        if (cursor.count == 0){
+            Toast.makeText(this@MainActivity, "無歷史紀錄", Toast.LENGTH_SHORT).show()
+        } else {
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_history, null)
+            val builder = AlertDialog.Builder(this)
+            builder.setView(dialogView)
+            builder.setCancelable(true)
+            // 建立 AlertDialog
+            val dialog = builder.create()
+            dialog.show()
+
+            historyAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,historyItems)
+            val lsvHistory = dialogView.findViewById<ListView>(R.id.lsv_history)
+            historyItems.clear()
+            lsvHistory.adapter = historyAdapter
+
+            cursor.moveToFirst()
+            for (i in 0 until cursor.count){
+                Log.d("MainAct","${cursor.getString(0)}&${cursor.getString(1)}")
+                historyItems.add("${cursor.getString(0)}\t${cursor.getString(1)}")
+                cursor.moveToNext()
+            }
+            historyAdapter.notifyDataSetChanged()
+            cursor.close()
+
+            dialogView.findViewById<Button>(R.id.btn_clear).setOnClickListener {
+                dbrw.execSQL("UPDATE apiTable SET READ = 0")
+                Toast.makeText(this@MainActivity, "已清除紀錄", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
         }
-        historyAdapter.notifyDataSetChanged()
+    }
+
+
+    private fun searchByName(keyword: String): MutableList<Map<String, Any>> {
+        val dbHelper = MyDBHelper(this)
+        val db = dbHelper.readableDatabase
+
+        val keywordWithWildcards = "%$keyword%"
+        val cursor = db.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?",
+            arrayOf(keywordWithWildcards))
+
+        val results = mutableListOf<Map<String, Any>>()
+        while (cursor.moveToNext()) {
+            val result = mutableMapOf<String, Any>()
+            result["name"] = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+            result["vic"] = cursor.getString(cursor.getColumnIndexOrThrow("vic"))
+            result["lat"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"))
+            result["lng"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
+            results.add(result)
+        }
         cursor.close()
 
-        dialogView.findViewById<Button>(R.id.btn_clear).setOnClickListener {
-            dbrw.execSQL("DELETE FROM apiTable")
-        }
+        return results
     }
 
     class MyObject {
@@ -226,13 +248,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 var name = ""
                 var vicinity = ""
             }
-        }
-        // 添加方法根據 name 關鍵字查找 Content
-        fun findContentsByKeyword(keyword: String): Pair<List<String>, List<String>> {
-            val filterContents = results.content.filter { it.name.contains(keyword, ignoreCase = true) }
-            val names = filterContents.map { it.name }
-            val vicinitys = filterContents.map { it.vicinity }
-            return Pair(names, vicinitys)
         }
     }
     class MyDBHelper(
