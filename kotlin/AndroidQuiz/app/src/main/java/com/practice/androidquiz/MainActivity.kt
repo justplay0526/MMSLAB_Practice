@@ -34,8 +34,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var maps: GoogleMap
     private var searchItems: ArrayList<String> = ArrayList()
     private var historyItems: ArrayList<String> = ArrayList()
-    private lateinit var apiObj: MyObject
-    private lateinit var searchAdapter: ArrayAdapter<String>
+    private lateinit var searchAdapter: ListAdapter
     private lateinit var historyAdapter: ArrayAdapter<String>
     private lateinit var dbrw: SQLiteDatabase
     override fun onRequestPermissionsResult(
@@ -155,29 +154,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun showSearchDialog(){
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_search, null)
-        val builder = AlertDialog.Builder(this)
-        builder.setView(dialogView)
-        builder.setCancelable(true)
-        // 建立 AlertDialog
-        val dialog = builder.create()
-        dialog.show()
-
-        //宣告Adapter
-        searchAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,searchItems)
-        val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
-        lsvSql.adapter = searchAdapter
-        searchItems.clear()
-
         val results = searchByName(binding.edSearch.text.toString())
-        results.forEach{c ->
-            val name = c["name"] as String
-            val vic = c["vic"] as String
-            searchItems.add("${name}\t${vic}")
-            dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${name}'")
-        }
+        if (results.toString() == "[]"){
+            Toast.makeText(this@MainActivity, "查無紀錄", Toast.LENGTH_SHORT).show()
+        } else {
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_search, null)
+            val builder = AlertDialog.Builder(this)
+            builder.setView(dialogView)
+            builder.setCancelable(true)
+            // 建立 AlertDialog
+            val dialog = builder.create()
+            dialog.show()
 
-        searchAdapter.notifyDataSetChanged()//更新列表資料
+            results.forEach{c ->
+                val name = c["name"] as String
+                dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${name}'")
+            }
+
+            //宣告Adapter
+            searchAdapter = ListAdapter(this, results)
+            val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
+            lsvSql.adapter = searchAdapter
+        }
     }
 
     private fun showHistoryDialog(){
@@ -221,9 +219,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val db = dbHelper.readableDatabase
 
         val keywordWithWildcards = "%$keyword%"
+
         val cursor = db.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?",
             arrayOf(keywordWithWildcards))
-
+        if (cursor.count == 0) {
+            return mutableListOf()
+        }
         val results = mutableListOf<Map<String, Any>>()
         while (cursor.moveToNext()) {
             val result = mutableMapOf<String, Any>()
