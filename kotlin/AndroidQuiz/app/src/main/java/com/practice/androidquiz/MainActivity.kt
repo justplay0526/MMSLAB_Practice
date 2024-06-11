@@ -24,6 +24,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.gson.Gson
 import com.practice.androidquiz.databinding.ActivityMainBinding
@@ -34,7 +35,7 @@ import okhttp3.Response
 import java.io.IOException
 
 private lateinit var binding: ActivityMainBinding
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     private lateinit var maps: GoogleMap
     private lateinit var searchAdapter: ListAdapter
     private lateinit var historyAdapter: ListAdapter
@@ -68,13 +69,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 0
             )
         } else {
-            maps = map
             //顯示出能定位個人位置的按紐
             map.isMyLocationEnabled = true
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 LatLng(25.035, 121.54), 13f
             ))
+            map.setOnMarkerClickListener(this)
+            maps = map
         }
+    }
+    override fun onMarkerClick(marker: Marker): Boolean {
+        //創建並顯示對話框
+        showMarkerDialog(marker)
+        return true
     }
 
     @Suppress("DEPRECATION")
@@ -91,7 +98,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.edSearch.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 val clearDrawable: Drawable? = binding.edSearch.compoundDrawables[2] // 獲得右邊的 drawable
-                if (clearDrawable != null && event.rawX >= (binding.edSearch.right - binding.edSearch.paddingEnd - clearDrawable.bounds.width())) {
+                if (clearDrawable != null && event.rawX >= (binding.edSearch.right
+                            - binding.edSearch.paddingEnd - clearDrawable.bounds.width())) {
                     binding.edSearch.text.clear()
                     return@setOnTouchListener true
                 }
@@ -180,6 +188,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             builder.setCancelable(true)
             // 建立 AlertDialog
             val dialog = builder.create()
+            dialog.window?.setBackgroundDrawableResource(R.drawable.round_dialog_bg)
             dialog.show()
 //            results.forEach{c ->
 //                val name = c["name"] as String
@@ -219,6 +228,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             builder.setCancelable(true)
             // 建立 AlertDialog
             val dialog = builder.create()
+            dialog.window?.setBackgroundDrawableResource(R.drawable.round_dialog_bg)
             dialog.show()
 
             val results = mutableListOf<Map<String, Any>>()
@@ -230,8 +240,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val result = mutableMapOf<String, Any>()
                 result["name"] = cursor.getString(cursor.getColumnIndexOrThrow("name"))
                 result["vic"] = cursor.getString(cursor.getColumnIndexOrThrow("vic"))
-                result["lat"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"))
-                result["lng"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
                 results.add(result)
             }
             cursor.close()
@@ -244,6 +252,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 dialog.dismiss()
             }
         }
+    }
+    private fun showMarkerDialog(marker: Marker) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_info, null)
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        builder.setCancelable(true)
+        // 建立 AlertDialog
+        val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.round_info_bg)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tv_title)
+        tvTitle.text = marker.title
+        dialog.show()
     }
 
 
@@ -263,8 +283,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val result = mutableMapOf<String, Any>()
             result["name"] = cursor.getString(cursor.getColumnIndexOrThrow("name"))
             result["vic"] = cursor.getString(cursor.getColumnIndexOrThrow("vic"))
-            result["lat"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"))
-            result["lng"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
+            //result["lat"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"))
+            //result["lng"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
             results.add(result)
         }
         cursor.close()
@@ -281,6 +301,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 var lng = ""
                 var name = ""
                 var vicinity = ""
+                var photo = ""
+                var landscape: Array<String> = arrayOf()
+                var star = 1
             }
         }
     }
@@ -305,4 +328,5 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             onCreate(db)
         }
     }
+
 }
