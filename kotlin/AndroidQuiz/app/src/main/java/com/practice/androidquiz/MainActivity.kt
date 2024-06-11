@@ -11,8 +11,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.widget.AdapterView
 import android.widget.Button
 import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -88,7 +90,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         binding.edSearch.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_UP) {
-                val clearDrawable: Drawable? = binding.edSearch.compoundDrawables[2] // 获取右边的 drawable
+                val clearDrawable: Drawable? = binding.edSearch.compoundDrawables[2] // 獲得右邊的 drawable
                 if (clearDrawable != null && event.rawX >= (binding.edSearch.right - binding.edSearch.paddingEnd - clearDrawable.bounds.width())) {
                     binding.edSearch.text.clear()
                     return@setOnTouchListener true
@@ -179,15 +181,30 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             // 建立 AlertDialog
             val dialog = builder.create()
             dialog.show()
-
-            results.forEach{c ->
-                val name = c["name"] as String
-                dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${name}'")
-            }
+//            results.forEach{c ->
+//                val name = c["name"] as String
+//            }
             //宣告Adapter
             searchAdapter = ListAdapter(this, results)
             val lsvSql = dialogView.findViewById<ListView>(R.id.lsv_sql)
             lsvSql.adapter = searchAdapter
+            lsvSql.onItemClickListener = AdapterView.OnItemClickListener{ _, view, _, _ ->
+                val text = view.findViewById<TextView>(R.id.tvName).text.toString()
+                dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${text}'")
+                val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?", arrayOf(text))
+                cursor.moveToFirst()
+                val locate = text to LatLng(
+                        cursor.getDouble(cursor.getColumnIndexOrThrow("lat")),
+                        cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
+                    )
+                cursor.close()
+                //將地圖中心點移到點擊之listview的item上
+                maps.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    locate.second, 13f
+                ))
+                //移動完將dialog隱藏
+                dialog.dismiss()
+            }
         }
     }
 
