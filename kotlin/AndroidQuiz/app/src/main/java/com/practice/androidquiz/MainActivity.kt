@@ -264,6 +264,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val tvTitle = dialogView.findViewById<TextView>(R.id.tv_title)
         tvTitle.text = marker.title
         dialog.show()
+        val btn_hotel = findViewById<android.widget.Button>(R.id.btn_hotel)
+        btn_hotel.setOnClickListener {
+
+        }
     }
 
 

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".DetailFragment">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+        <RelativeLayout
+            android:id="@+id/tool_bar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent">
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="5dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/left_arrow"/>
+            <TextView
+                android:text="詳細資訊"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:textSize="28dp" />
+        </RelativeLayout>
+        <LinearLayout
+            android:id="@+id/hotel_info"
+            android:layout_width="match_parent"
+            android:layout_height="310dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            app:layout_constraintTop_toBottomOf="@id/tool_bar">
+            <ImageView
+                android:layout_marginTop="10dp"
+                android:layout_width="150dp"
+                android:layout_height="150dp"/>
+            <TextView
+                android:id="@+id/tv_hotelName"
+                android:text="旅館"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="28dp"/>
+            <TextView
+                android:id="@+id/tv_hotelVic"
+                android:text="台北"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="20dp"/>
+            <RatingBar
+                android:id="@+id/ratingBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:numStars="5"
+                android:stepSize="1"
+                android:rating="0" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/view_pic"
+            android:text="景觀圖"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            app:layout_constraintStart_toStartOf="@id/gridView"
+            app:layout_constraintTop_toBottomOf="@id/hotel_info" />
+        <GridView
+            android:id="@+id/gridView"
+            android:layout_width="380dp"
+            android:layout_height="320dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/view_pic"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    
+
+
+</FrameLayout>
