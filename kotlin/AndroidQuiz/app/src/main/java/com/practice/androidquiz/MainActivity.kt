@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.View
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.ListView
@@ -154,8 +155,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name = ?", arrayOf(name))
                         //檢查是否存在相同紀錄
                         if (cursor.count == 0){
-                            dbrw.execSQL("INSERT INTO apiTable(name, vic, lat, lng ,read) VALUES(?, ?, ?, ?, ?)",
-                                arrayOf(data.name, data.vicinity, data.lat.toFloat(), data.lng.toFloat(), 0))
+                            dbrw.execSQL("INSERT INTO apiTable(name, vic, lat, lng , read, star) VALUES(?, ?, ?, ?, ?, ?)",
+                                arrayOf(data.name, data.vicinity, data.lat.toFloat(), data.lng.toFloat(), 0, data.star))
                         }
                         //關閉指標
                         cursor.close()
@@ -175,6 +176,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 }
             }
         })
+    }
+
+    fun onFragmentDestroyed() {
+        Log.d("MainAct", "DetailFragment is destroyed")
+        binding.btnSearch.visibility = View.VISIBLE
+        binding.btnHistory.visibility = View.VISIBLE
     }
 
     private fun showSearchDialog(){
@@ -264,9 +271,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val tvTitle = dialogView.findViewById<TextView>(R.id.tv_title)
         tvTitle.text = marker.title
         dialog.show()
-        val btn_hotel = findViewById<android.widget.Button>(R.id.btn_hotel)
-        btn_hotel.setOnClickListener {
+        val btnHotel = dialogView.findViewById<Button>(R.id.btn_hotel)
+        btnHotel.setOnClickListener {
+            val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?", arrayOf(marker.title))
+            cursor.moveToFirst()
 
+            val b = Bundle()
+            b.putString("name", marker.title)
+            b.putString("vic", cursor.getString(cursor.getColumnIndexOrThrow("vic")))
+            cursor.close()
+
+            val frag = DetailFragment()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.container, frag)
+                .addToBackStack(null)
+                .commit()
+
+            binding.btnSearch.visibility = View.INVISIBLE
+            binding.btnHistory.visibility = View.INVISIBLE
+
+
+            dialog.dismiss()
         }
     }
 
@@ -287,8 +312,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             val result = mutableMapOf<String, Any>()
             result["name"] = cursor.getString(cursor.getColumnIndexOrThrow("name"))
             result["vic"] = cursor.getString(cursor.getColumnIndexOrThrow("vic"))
-            //result["lat"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lat"))
-            //result["lng"] = cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
             results.add(result)
         }
         cursor.close()
@@ -324,7 +347,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         override fun onCreate(db: SQLiteDatabase?) {
             Log.d("DATABASE", "CREATED")
-            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real,read integer)")
+            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real,read integer, star integer)")
         }
 
         override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
