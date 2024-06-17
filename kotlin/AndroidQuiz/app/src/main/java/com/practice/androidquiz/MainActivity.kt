@@ -276,17 +276,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?", arrayOf(marker.title))
             cursor.moveToFirst()
 
+            val frag = DetailFragment()
             val b = Bundle()
             b.putString("name", marker.title)
             b.putString("vic", cursor.getString(cursor.getColumnIndexOrThrow("vic")))
-            cursor.close()
-
-            val frag = DetailFragment()
+            b.putString("star", cursor.getString(cursor.getColumnIndexOrThrow("star")))
+            frag.arguments = b
             supportFragmentManager.beginTransaction()
                 .replace(R.id.container, frag)
                 .addToBackStack(null)
                 .commit()
-
+            cursor.close()
             binding.btnSearch.visibility = View.INVISIBLE
             binding.btnHistory.visibility = View.INVISIBLE
 

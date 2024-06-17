@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 
 class DetailFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,7 +22,18 @@ class DetailFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         Log.d("DetailFrag", "OnCreateView")
-        return inflater.inflate(R.layout.fragment_detail, container, false)
+        val view = inflater.inflate(R.layout.fragment_detail, container, false)
+        val b = arguments
+        if (b != null){
+            Log.d("DetailFrag", "notNull")
+            val rating = b.getString("star")!!.toInt()
+            val starContainer = view.findViewById<LinearLayout>(R.id.starContainer)
+            Log.d("DetailFrag", rating.toString())
+            addStars(starContainer, rating)
+            view.findViewById<TextView>(R.id.tv_hotelName).text = b.getString("name")
+            view.findViewById<TextView>(R.id.tv_hotelVic).text = b.getString("vic")
+        }
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -38,4 +51,20 @@ class DetailFragment : Fragment() {
         (activity as? MainActivity)?.onFragmentDestroyed()
     }
 
+    private fun addStars(container: LinearLayout, rating: Int) {
+        container.removeAllViews()
+
+        val sizeIndp = 150
+
+        for (i in 1..rating) {
+            val star = ImageView(context)
+            star.setImageResource(R.drawable.viewstar)
+            val params = LinearLayout.LayoutParams(
+                sizeIndp,
+                sizeIndp
+            )
+            star.layoutParams = params
+            container.addView(star)
+        }
+    }
 }

@@ -59,14 +59,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textSize="20dp"/>
-            <RatingBar
-                android:id="@+id/ratingBar"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/starContainer"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:numStars="5"
-                android:stepSize="1"
-                android:rating="0" />
+                android:orientation="horizontal"
+                android:gravity="center">
+                <ImageView
+                    android:src="@drawable/viewstar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
         </LinearLayout>
         <TextView
             android:id="@+id/view_pic"
