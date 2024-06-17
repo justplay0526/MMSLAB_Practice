@@ -155,8 +155,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name = ?", arrayOf(name))
                         //檢查是否存在相同紀錄
                         if (cursor.count == 0){
-                            dbrw.execSQL("INSERT INTO apiTable(name, vic, lat, lng , read, star) VALUES(?, ?, ?, ?, ?, ?)",
-                                arrayOf(data.name, data.vicinity, data.lat.toFloat(), data.lng.toFloat(), 0, data.star))
+                            val landscapeUrl = data.landscape.joinToString("^")
+                            Log.d("MainAct","${data.name}&${landscapeUrl}")
+                            dbrw.execSQL("INSERT INTO apiTable(name, vic, lat, lng , read, star, photo, landscape) " +
+                                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                                arrayOf(data.name, data.vicinity, data.lat.toFloat(), data.lng.toFloat(),
+                                    0, data.star, data.photo, landscapeUrl))
                         }
                         //關閉指標
                         cursor.close()
@@ -281,15 +285,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             b.putString("name", marker.title)
             b.putString("vic", cursor.getString(cursor.getColumnIndexOrThrow("vic")))
             b.putString("star", cursor.getString(cursor.getColumnIndexOrThrow("star")))
+            b.putString("photo", cursor.getString(cursor.getColumnIndexOrThrow("photo")))
+            b.putString("landscape", cursor.getString(cursor.getColumnIndexOrThrow("landscape")))
             frag.arguments = b
             supportFragmentManager.beginTransaction()
                 .replace(R.id.container, frag)
                 .addToBackStack(null)
                 .commit()
             cursor.close()
+
             binding.btnSearch.visibility = View.INVISIBLE
             binding.btnHistory.visibility = View.INVISIBLE
-
 
             dialog.dismiss()
         }
@@ -347,7 +353,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         override fun onCreate(db: SQLiteDatabase?) {
             Log.d("DATABASE", "CREATED")
-            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real,read integer, star integer)")
+            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real,read integer, star integer, photo text, landscape text)")
         }
 
         override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {

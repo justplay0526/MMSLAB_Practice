@@ -42,6 +42,7 @@
             android:gravity="center_horizontal"
             app:layout_constraintTop_toBottomOf="@id/tool_bar">
             <ImageView
+                android:id="@+id/info_pic"
                 android:layout_marginTop="10dp"
                 android:layout_width="150dp"
                 android:layout_height="150dp"/>
@@ -72,7 +73,7 @@
             </LinearLayout>
         </LinearLayout>
         <TextView
-            android:id="@+id/view_pic"
+            android:id="@+id/tv_view_pic"
             android:text="景觀圖"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -86,7 +87,7 @@
             android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/view_pic"/>
+            app:layout_constraintTop_toBottomOf="@id/tv_view_pic"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
     
 

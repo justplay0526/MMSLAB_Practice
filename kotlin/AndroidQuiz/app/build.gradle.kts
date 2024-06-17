@@ -50,6 +50,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     //Gson、OkHttp 的 implementation
     implementation("com.google.code.gson:gson:2.10")
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

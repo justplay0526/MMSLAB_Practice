@@ -6,9 +6,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.GridView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.bumptech.glide.Glide
 
 class DetailFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,11 +29,23 @@ class DetailFragment : Fragment() {
         if (b != null){
             Log.d("DetailFrag", "notNull")
             val rating = b.getString("star")!!.toInt()
+            val photoUrl = b.getString(("photo"))
+            val landscapeUrl = b.getString("landscape")
+            val urlArray = landscapeUrl!!.split("^").toTypedArray()
+            val gridAdapter = GridAdapter(requireContext(), arrayOf(*urlArray))
+            Log.d("DetailFrag", photoUrl.toString())
             val starContainer = view.findViewById<LinearLayout>(R.id.starContainer)
             Log.d("DetailFrag", rating.toString())
             addStars(starContainer, rating)
+            Glide.with(this)
+                .load(photoUrl)
+                .into(view.findViewById(R.id.info_pic))
             view.findViewById<TextView>(R.id.tv_hotelName).text = b.getString("name")
             view.findViewById<TextView>(R.id.tv_hotelVic).text = b.getString("vic")
+            view.findViewById<TextView>(R.id.tv_view_pic).text = "景觀圖("+urlArray.size+")"
+            val gridView = view.findViewById<GridView>(R.id.gridView)
+            gridView.adapter = gridAdapter
+            gridView.numColumns = 3
         }
         return view
     }
