@@ -62,36 +62,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             loadMap()           //因允許定位權限，所以正常執行應用程式
         }
     }
-
-    override fun onMapReady(map: GoogleMap) {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 0
-            )
-        } else {
-            map.isMyLocationEnabled = true //顯示出能定位個人位置的按紐
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                LatLng(25.035, 121.54), 13f
-            ))
-            map.setOnMarkerClickListener(this)
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener(this, OnSuccessListener { location: Location? -> // 成功取得定位就儲存進變數
-                    location?.let {
-                        currentLocation = "${it.latitude},${it.longitude}"
-                    }
-                })
-            maps = map
-        }
-    }
     override fun onMarkerClick(marker: Marker): Boolean {
         //創建並顯示對話框
         showMarkerDialog(marker)
@@ -120,7 +90,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }
             false
         }
-        //載入地圖
         loadMap()
         //初始化FusedLocationProviderClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -144,6 +113,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     override fun onDestroy() {
         super.onDestroy()
         dbrw.close()
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        maps = map
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 0
+            )
+        } else {
+            map.isMyLocationEnabled = true //顯示出能定位個人位置的按紐
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                LatLng(25.035, 121.54), 13f
+            ))
+            map.setOnMarkerClickListener(this)
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener(this, OnSuccessListener { location: Location? -> // 成功取得定位就儲存進變數
+                    location?.let {
+                        currentLocation = "${it.latitude},${it.longitude}"
+                    }
+                })
+        }
     }
     //載入地圖
     private fun loadMap(){
