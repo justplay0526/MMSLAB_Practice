@@ -1,11 +1,14 @@
 package com.practice.androidquiz
 
 import android.content.Context
+import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 
 class GridAdapter(private val context: Context, private val imageUrls: Array<String>) : BaseAdapter() {
@@ -39,6 +42,22 @@ class GridAdapter(private val context: Context, private val imageUrls: Array<Str
         Glide.with(context)
             .load(imageUrl)
             .into(imageView)
+
+        view.setOnClickListener {
+            //Log.d("Grid", imageUrls[position])
+            val frag = PicFragment()
+            val joinUrl = imageUrls.joinToString("^")
+            val b = Bundle()
+            b.putString("image", imageUrl)
+            b.putString("pos", (position + 1).toString())
+            b.putString("size", imageUrls.size.toString())
+            b.putString("array", joinUrl)
+            frag.arguments = b
+            val transaction = (context as AppCompatActivity).supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.container, frag)
+            transaction.addToBackStack(null)
+            transaction.commit()
+        }
 
         return view
     }

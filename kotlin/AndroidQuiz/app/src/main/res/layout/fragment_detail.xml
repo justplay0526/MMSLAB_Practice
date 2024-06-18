@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
-                android:textSize="28dp" />
+                android:textSize="28sp" />
         </RelativeLayout>
         <LinearLayout
             android:id="@+id/hotel_info"
@@ -52,14 +52,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textSize="28dp"/>
+                android:textSize="28sp"/>
             <TextView
                 android:id="@+id/tv_hotelVic"
                 android:text="台北"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textSize="20dp"/>
+                android:textSize="20sp"/>
             <LinearLayout
                 android:id="@+id/starContainer"
                 android:layout_width="match_parent"
@@ -77,7 +77,7 @@
             android:text="景觀圖"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20dp"
+            android:textSize="20sp"
             app:layout_constraintStart_toStartOf="@id/gridView"
             app:layout_constraintTop_toBottomOf="@id/hotel_info" />
         <GridView
@@ -89,7 +89,5 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_view_pic"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
-    
-
 
 </FrameLayout>
