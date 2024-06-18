@@ -2,11 +2,14 @@ package com.practice.androidquiz
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CursorFactory
 import android.database.sqlite.SQLiteOpenHelper
 import android.graphics.drawable.Drawable
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,6 +23,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -27,6 +32,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.gson.Gson
 import com.practice.androidquiz.databinding.ActivityMainBinding
 import okhttp3.Call
@@ -38,6 +44,8 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     private lateinit var maps: GoogleMap
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var currentLocation: String
     private lateinit var searchAdapter: ListAdapter
     private lateinit var historyAdapter: ListAdapter
     private lateinit var dbrw: SQLiteDatabase
@@ -76,6 +84,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 LatLng(25.035, 121.54), 13f
             ))
             map.setOnMarkerClickListener(this)
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener(this, OnSuccessListener { location: Location? ->
+                    // 成功获取到位置
+                    location?.let {
+                        currentLocation = "${it.latitude},${it.longitude}"
+                    }
+                })
             maps = map
         }
     }
@@ -110,6 +125,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         //載入地圖
         loadMap()
+
+        // 初始化 FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         //取得資料庫實體
         dbrw = MyDBHelper(this).writableDatabase
         //接入 API 資料
@@ -276,6 +294,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         tvTitle.text = marker.title
         dialog.show()
         val btnHotel = dialogView.findViewById<Button>(R.id.btn_hotel)
+        val btnGuide = dialogView.findViewById<Button>(R.id.btn_guide)
         btnHotel.setOnClickListener {
             val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?", arrayOf(marker.title))
             cursor.moveToFirst()
@@ -298,6 +317,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             binding.btnHistory.visibility = View.INVISIBLE
 
             dialog.dismiss()
+        }
+        btnGuide.setOnClickListener {
+            val origin = currentLocation
+            val dest = marker.title
+            openGoogleMapsDirections(origin, dest.toString())
+        }
+
+    }
+
+    private fun openGoogleMapsDirections(origin: String, destination: String) {
+        val uri = Uri.parse("https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&travelmode=driving")
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        intent.setPackage("com.google.android.apps.maps")
+
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        } else {
+            val browserIntent = Intent(Intent.ACTION_VIEW, uri)
+            startActivity(browserIntent)
         }
     }
 
@@ -353,7 +391,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         override fun onCreate(db: SQLiteDatabase?) {
             Log.d("DATABASE", "CREATED")
-            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real,read integer, star integer, photo text, landscape text)")
+            db?.execSQL("CREATE TABLE apiTable(name text PRIMARY KEY,vic text ,lat real,lng real" +
+                    ",read integer, star integer, photo text, landscape text)")
         }
 
         override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
