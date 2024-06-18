@@ -19,7 +19,8 @@ class PicFragment : Fragment() {
         super.onCreate(savedInstanceState)
         Log.d("PicFrag", "OnCreated")
         arguments?.let {
-            initPos = it.getInt("pos", 1)
+            initPos = it.getInt("pos", 1) //取得被點擊的圖片序號
+            //將所有的圖片URL都抓進來，以便圖片的切換
             urlArray = it.getStringArray("urlArray") ?: emptyArray()
         }
     }
@@ -31,12 +32,13 @@ class PicFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_pic, container, false)
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
         view.findViewById<TextView>(R.id.pic_title).text = "(${initPos + 1}/${urlArray.size})"
-        val adapter = ViewPager(requireActivity(), listOf(*urlArray) )
+        val adapter = ViewPager(requireActivity(), listOf(*urlArray) ) //設定ViewPager的Adapter
         viewPager.adapter = adapter
-        viewPager.setCurrentItem(initPos, false)
+        viewPager.setCurrentItem(initPos, false) //設定載入時選擇的圖片
         viewPager.registerOnPageChangeCallback(object :ViewPager2.OnPageChangeCallback(){
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
+                //每當圖片進行滑動，標題文字也會跟著改變
                 view.findViewById<TextView>(R.id.pic_title).text = "(${position +1}/${urlArray.size})"
             }
         })
@@ -47,6 +49,7 @@ class PicFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         view.findViewById<ImageView>(R.id.btn_back).setOnClickListener {
+            //退回母Fragment的頁面
             parentFragmentManager.popBackStack()
         }
     }

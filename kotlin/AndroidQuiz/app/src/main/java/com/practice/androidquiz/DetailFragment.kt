@@ -23,8 +23,6 @@ class DetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        Log.d("DetailFrag", "OnCreateView")
         val view = inflater.inflate(R.layout.fragment_detail, container, false)
         val b = arguments
         if (b != null){
@@ -34,10 +32,10 @@ class DetailFragment : Fragment() {
             val landscapeUrl = b.getString("landscape")
             val urlArray = landscapeUrl!!.split("^").toTypedArray()
             val gridAdapter = GridAdapter(requireContext(), arrayOf(*urlArray))
-            Log.d("DetailFrag", photoUrl.toString())
             val starContainer = view.findViewById<LinearLayout>(R.id.starContainer)
-            Log.d("DetailFrag", rating.toString())
+            //載入旅館星級數
             addStars(starContainer, rating)
+            //載入詳細資訊頁面的圖片
             Glide.with(this)
                 .load(photoUrl)
                 .into(view.findViewById(R.id.info_pic))
@@ -46,7 +44,8 @@ class DetailFragment : Fragment() {
             view.findViewById<TextView>(R.id.tv_view_pic).text = "景觀圖("+urlArray.size+")"
             val gridView = view.findViewById<GridView>(R.id.gridView)
             gridView.adapter = gridAdapter
-            gridView.numColumns = 3
+            gridView.numColumns = 3 //設定一行能放置的item數
+            //設定Item被點擊的Listener
             gridView.onItemClickListener = AdapterView.OnItemClickListener { _, _, pos, _ ->
                 val picFragment = PicFragment().apply {
                     arguments = Bundle().apply {
@@ -60,12 +59,12 @@ class DetailFragment : Fragment() {
                     .commit()
             }
         }
+        // Inflate the layout for this fragment
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val gridView = view.findViewById<GridView>(R.id.gridView)
         view.findViewById<ImageView>(R.id.btn_back).setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .remove(this).commitNow()
@@ -80,9 +79,9 @@ class DetailFragment : Fragment() {
     }
 
     private fun addStars(container: LinearLayout, rating: Int) {
-        container.removeAllViews()
+        container.removeAllViews() //清除container之前的View
 
-        val sizeIndp = 150
+        val sizeIndp = 150 //限制圖片大小
 
         for (i in 1..rating) {
             val star = ImageView(context)

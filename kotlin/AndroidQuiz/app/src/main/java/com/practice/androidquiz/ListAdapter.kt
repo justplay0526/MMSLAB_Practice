@@ -35,8 +35,8 @@ class ListAdapter (private val context: Context, private val places: MutableList
         }
 
         val place = places[position]
-        viewHolder.tvName.text = place["name"] as String
-        viewHolder.tvVic.text = place["vic"] as String
+        viewHolder.tvName.text = place["name"] as String //將旅館名稱放進tvName
+        viewHolder.tvVic.text = place["vic"] as String //將旅館位置放進tvVic
 
         return view
     }
