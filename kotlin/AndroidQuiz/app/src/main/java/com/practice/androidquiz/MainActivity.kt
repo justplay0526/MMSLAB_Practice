@@ -78,15 +78,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 0
             )
         } else {
-            //顯示出能定位個人位置的按紐
-            map.isMyLocationEnabled = true
+            map.isMyLocationEnabled = true //顯示出能定位個人位置的按紐
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 LatLng(25.035, 121.54), 13f
             ))
             map.setOnMarkerClickListener(this)
             fusedLocationClient.lastLocation
-                .addOnSuccessListener(this, OnSuccessListener { location: Location? ->
-                    // 成功获取到位置
+                .addOnSuccessListener(this, OnSuccessListener { location: Location? -> // 成功取得定位就儲存進變數
                     location?.let {
                         currentLocation = "${it.latitude},${it.longitude}"
                     }
@@ -264,6 +262,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             historyAdapter = ListAdapter(this, results)
             val lsvHistory = dialogView.findViewById<ListView>(R.id.lsv_history)
             lsvHistory.adapter = historyAdapter
+
+            lsvHistory.onItemClickListener = AdapterView.OnItemClickListener{ _, view, _, _ ->
+                val text = view.findViewById<TextView>(R.id.tvName).text.toString()
+                dbrw.execSQL("UPDATE apiTable SET READ = 1 WHERE name LIKE '${text}'")
+                val cursor = dbrw.rawQuery("SELECT * FROM apiTable WHERE name LIKE ?", arrayOf(text))
+                cursor.moveToFirst()
+                val locate = text to LatLng(
+                    cursor.getDouble(cursor.getColumnIndexOrThrow("lat")),
+                    cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
+                )
+                cursor.close()
+                //將地圖中心點移到點擊之listview的item上
+                maps.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    locate.second, 13f
+                ))
+                //移動完將dialog隱藏
+                dialog.dismiss()
+            }
 
             while (cursor.moveToNext()) {
                 val result = mutableMapOf<String, Any>()

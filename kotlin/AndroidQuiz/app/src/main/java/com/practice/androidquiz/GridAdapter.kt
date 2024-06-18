@@ -43,22 +43,6 @@ class GridAdapter(private val context: Context, private val imageUrls: Array<Str
             .load(imageUrl)
             .into(imageView)
 
-        view.setOnClickListener {
-            //Log.d("Grid", imageUrls[position])
-            val frag = PicFragment()
-            val joinUrl = imageUrls.joinToString("^")
-            val b = Bundle()
-            b.putString("image", imageUrl)
-            b.putString("pos", (position + 1).toString())
-            b.putString("size", imageUrls.size.toString())
-            b.putString("array", joinUrl)
-            frag.arguments = b
-            val transaction = (context as AppCompatActivity).supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.container, frag)
-            transaction.addToBackStack(null)
-            transaction.commit()
-        }
-
         return view
     }
 }

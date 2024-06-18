@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.GridView
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -46,12 +47,25 @@ class DetailFragment : Fragment() {
             val gridView = view.findViewById<GridView>(R.id.gridView)
             gridView.adapter = gridAdapter
             gridView.numColumns = 3
+            gridView.onItemClickListener = AdapterView.OnItemClickListener { _, _, pos, _ ->
+                val picFragment = PicFragment().apply {
+                    arguments = Bundle().apply {
+                        putInt("pos",pos)
+                        putStringArray("urlArray",urlArray)
+                    }
+                }
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.container, picFragment)
+                    .addToBackStack(null)
+                    .commit()
+            }
         }
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val gridView = view.findViewById<GridView>(R.id.gridView)
         view.findViewById<ImageView>(R.id.btn_back).setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .remove(this).commitNow()

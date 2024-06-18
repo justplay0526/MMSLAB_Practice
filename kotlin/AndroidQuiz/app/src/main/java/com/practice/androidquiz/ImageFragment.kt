@@ -1,6 +1,7 @@
 package com.practice.androidquiz
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +31,7 @@ class ImageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val imageUrl = arguments?.getString(ARG_IMAGE_URL)
+        Log.d("IMAGEFRAG",imageUrl.toString())
         Glide.with(this)
             .load(imageUrl)
             .into(view.findViewById(R.id.imageView))

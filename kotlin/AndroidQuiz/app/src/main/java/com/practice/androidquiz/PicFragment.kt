@@ -13,9 +13,15 @@ import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 
 class PicFragment : Fragment() {
+    private lateinit var urlArray:Array<String>
+    private var initPos: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("PicFrag", "OnCreated")
+        arguments?.let {
+            initPos = it.getInt("pos", 1)
+            urlArray = it.getStringArray("urlArray") ?: emptyArray()
+        }
     }
 
     override fun onCreateView(
@@ -24,18 +30,14 @@ class PicFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_pic, container, false)
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
-        val b = arguments
-        val array = b!!.getString("array")
-        val imageUrls = array!!.split("^").toTypedArray()
-        val pos = b.getString("pos")
-        val size = b.getString("size")
-        view.findViewById<TextView>(R.id.pic_title).text = "(${pos}/${size})"
-        val adapter = ViewPager(requireActivity(), listOf(*imageUrls))
+        view.findViewById<TextView>(R.id.pic_title).text = "(${initPos + 1}/${urlArray.size})"
+        val adapter = ViewPager(requireActivity(), listOf(*urlArray) )
         viewPager.adapter = adapter
+        viewPager.setCurrentItem(initPos, false)
         viewPager.registerOnPageChangeCallback(object :ViewPager2.OnPageChangeCallback(){
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                view.findViewById<TextView>(R.id.pic_title).text = "(${position +1}/${size})"
+                view.findViewById<TextView>(R.id.pic_title).text = "(${position +1}/${urlArray.size})"
             }
         })
         // Inflate the layout for this fragment
