@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         } else {
             map.isMyLocationEnabled = true //顯示出能定位個人位置的按紐
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                LatLng(25.035, 121.54), 13f
+                LatLng(23.974727, 120.982274), 7.7f
             ))
             map.setOnMarkerClickListener(this)
             fusedLocationClient.lastLocation
