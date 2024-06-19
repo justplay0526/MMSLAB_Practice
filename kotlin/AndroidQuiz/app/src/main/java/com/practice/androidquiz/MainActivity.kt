@@ -44,6 +44,7 @@ import java.io.IOException
 private lateinit var binding: ActivityMainBinding
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     private lateinit var maps: GoogleMap
+    private var searchMarker: Marker? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var currentLocation: String
     private lateinit var searchAdapter: ListAdapter
@@ -227,6 +228,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         cursor.getDouble(cursor.getColumnIndexOrThrow("lng"))
                     )
                 cursor.close()
+                val markerOpt = MarkerOptions()
+                markerOpt.title(text)
+                markerOpt.position(locate.second)
+                searchMarker?.remove()
+                searchMarker = maps.addMarker(markerOpt)
+                searchMarker?.showInfoWindow()
                 //將地圖中心點移到點擊之listview的item上
                 maps.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     locate.second, 13f
