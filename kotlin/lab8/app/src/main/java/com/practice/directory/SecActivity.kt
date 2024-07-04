@@ -8,8 +8,9 @@ import android.util.Log
 import android.widget.Toast
 import com.practice.directory.databinding.ActivitySecBinding
 
-private lateinit var binding: ActivitySecBinding
+
 class SecActivity : AppCompatActivity() {
+    private lateinit var binding: ActivitySecBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySecBinding.inflate(layoutInflater)

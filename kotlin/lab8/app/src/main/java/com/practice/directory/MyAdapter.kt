@@ -6,29 +6,52 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.practice.directory.databinding.AdapterRowBinding
 
-class MyAdapter(private val data: ArrayList<Contact>):
-    RecyclerView.Adapter<MyAdapter.ViewHolder>(){
-    class ViewHolder(v: View): RecyclerView.ViewHolder(v){
-        val tv_name = v.findViewById<TextView>(R.id.tv_name)
-        val tv_phone = v.findViewById<TextView>(R.id.tv_phone)
-        val img_del = v.findViewById<ImageView>(R.id.img_del)
+class MyAdapter(
+    private val data: ArrayList<Contact>,
+    private val onClick: OnClick
+) : RecyclerView.Adapter<MyAdapter.ViewHolder>() {
+
+    interface OnClick {
+        fun onRemove(item: Contact)
+        fun onLongClick(item: Contact) {}
+    }
+
+    class ViewHolder(
+        private val binding: AdapterRowBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(
+            item: Contact,
+            onClick: OnClick
+        ) = with(binding) {
+            tvName.text = item.name
+            tvPhone.text = item.phone
+            imgDel.setOnClickListener {
+                onClick.onRemove(item)
+            }
+            root.setOnLongClickListener {
+                onClick.onLongClick(item)
+                true
+            }
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): ViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = AdapterRowBinding.inflate(layoutInflater, parent, false)
+                return ViewHolder(binding)
+            }
+        }
     }
 
     override fun getItemCount() = data.size
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
-        ViewHolder {
-            val v = LayoutInflater.from(parent.context)
-                .inflate(R.layout.adapter_row, parent, false)
-            return ViewHolder(v)
-    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        ViewHolder.from(parent)
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.tv_name.text = data[position].name
-        holder.tv_phone.text = data[position].phone
-        holder.img_del.setOnClickListener{
-            data.removeAt(position)
-            notifyDataSetChanged()
-        }
+        holder.bind(data[position], onClick)
     }
 }

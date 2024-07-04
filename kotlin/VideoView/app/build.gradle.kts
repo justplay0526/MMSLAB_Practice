@@ -1,14 +1,14 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
 }
 
 android {
-    namespace = "com.practice.directory"
+    namespace = "com.example.videoview"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.practice.directory"
+        applicationId = "com.example.videoview"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -26,9 +26,6 @@ android {
             )
         }
     }
-    buildFeatures{
-        viewBinding = true
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -37,15 +34,22 @@ android {
         jvmTarget = "1.8"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.core)
+    implementation(libs.gson)
+    implementation(libs.okhttp)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

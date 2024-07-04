@@ -14,16 +14,26 @@ import okhttp3.Response
 import java.io.IOException
 
 
-private lateinit var binding: ActivityMainBinding
+
 
 class MainActivity : AppCompatActivity() {
-    class MyObject {
-            lateinit var records:Array<Record>
-            class Record{
-                var sitename = ""
-                var status = ""
-            }
+    private lateinit var binding: ActivityMainBinding
+//    class MyObject {
+//            lateinit var records:Array<Record>
+//            class Record{
+//                var sitename = ""
+//                var status = ""
+//            }
+//
+//    }
 
+    data class MyObject(
+        val records: List<Record>
+    ) {
+        data class Record(
+            val sitename: String,
+            val status: String
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

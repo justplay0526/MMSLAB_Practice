@@ -41,8 +41,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import java.io.IOException
 
-private lateinit var binding: ActivityMainBinding
+
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+    private lateinit var binding: ActivityMainBinding
     private lateinit var maps: GoogleMap
     private var searchMarker: Marker? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
