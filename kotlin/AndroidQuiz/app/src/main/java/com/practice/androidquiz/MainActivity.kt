@@ -203,7 +203,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private fun showSearchDialog(){
         val results = searchByName(binding.edSearch.text.toString()) //從資料庫裡面抓出的欄位放入item
         if (results.toString() == "[]"){ //若是fun回傳[]，代表資料庫裡找不到資料
-            Toast.makeText(this@MainActivity, "查無紀錄", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity, "查無結果", Toast.LENGTH_SHORT).show()
         } else {
             val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_search, null)
             val builder = AlertDialog.Builder(this)

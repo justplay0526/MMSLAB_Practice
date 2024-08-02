@@ -2,10 +2,12 @@ package com.example.videoview
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.videoview.databinding.ActivityMainBinding
@@ -13,8 +15,8 @@ import com.google.gson.Gson
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.utils.YouTubePlayerTracker
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -39,9 +41,10 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        lifecycle.addObserver(binding.youtubePlayerView)
 
-//        tracker = YouTubePlayerTracker()
+        getSubtitle()
+
+        lifecycle.addObserver(binding.youtubePlayerView)
 
         binding.youtubePlayerView.addYouTubePlayerListener(object :
             AbstractYouTubePlayerListener() {
@@ -49,7 +52,6 @@ class MainActivity : AppCompatActivity() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 super.onReady(youTubePlayer)
                 youTubePlayers = youTubePlayer
-                //youTubePlayers.loadVideo("9nhhQhAxhjo", 0f)
             }
 
             override fun onStateChange(youTubePlayer: YouTubePlayer, state: PlayerConstants.PlayerState) {
@@ -62,15 +64,14 @@ class MainActivity : AppCompatActivity() {
                     PlayerConstants.PlayerState.PAUSED -> {
                         binding.btnTest.setBackgroundResource(R.drawable.baseline_play_arrow_24)
                     }
-
                     else -> {}
                 }
             }
 
             override fun onCurrentSecond(youTubePlayer: YouTubePlayer, second: Float) {
                 super.onCurrentSecond(youTubePlayer, second)
-                val pos = findPos(second)
-                Log.e("debug", "onCurrentSecond: $second\ncurrentPosition: $pos\n")
+//                val pos = findPos(second)
+//                Log.e("debug", "onCurrentSecond: $second\ncurrentPosition: $pos\n")
                 (binding.rcvSentence.adapter as SubtitleAdapter?)?.setCurrentPosition(findPos(second))
             }
         })
@@ -88,9 +89,6 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-
-        getSubtitle()
-
     }
 
     private fun getSubtitle() {
@@ -123,10 +121,12 @@ class MainActivity : AppCompatActivity() {
                 Log.d("subtitleObj", "$subtitleObj")
                 runOnUiThread {
                     val subtitleAdapter = SubtitleAdapter(subtitleObj).apply {
-                        onItemClick = { second ->
-                            Log.e("debug", "${second} seconds")
-                            (binding.rcvSentence.adapter as SubtitleAdapter?)?.setCurrentPosition(findPos(second))
+                        onItemClick = { item ->
+                            Toast.makeText(this@MainActivity, item.miniSecond.toString(), Toast.LENGTH_SHORT).show()
+                            val second = item.miniSecond.toFloat()
+                            Log.e("debug", "$second seconds")
                             youTubePlayers.seekTo(second)
+                            (binding.rcvSentence.adapter as SubtitleAdapter?)?.setCurrentPosition(findPos(second))
                         }
                     }
                     binding.rcvSentence.adapter = subtitleAdapter

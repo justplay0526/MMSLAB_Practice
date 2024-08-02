@@ -11,34 +11,39 @@ class SubtitleAdapter(
     private val subtitleObj: ArrayList<SubtitleObj.Result.VideoInfo.CaptionResult.Results.Captions>
 ) : RecyclerView.Adapter<SubtitleAdapter.ViewHolder>() {
 
-    private var currentPosition = -1
+    private var oldPosition = RecyclerView.NO_POSITION
+    private var currentPosition = RecyclerView.NO_POSITION
 
     fun setCurrentPosition(position: Int) {
+        if (currentPosition == position) return
         currentPosition = position
-        notifyDataSetChanged()
+        notifyItemChanged(oldPosition)
+        notifyItemChanged(currentPosition)
+        oldPosition = currentPosition
     }
 
-    var onItemClick: (Float) -> Unit = { Log.e("debug", "init") }
+    var onItemClick: (SubtitleObj.Result.VideoInfo.CaptionResult.Results.Captions) -> Unit = { Log.e("debug", "init") }
 
     class ViewHolder(
         private val binding: SubtitleBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: SubtitleObj.Result.VideoInfo.CaptionResult.Results.Captions,
-                 currentPosition: Int,
-                 onItemClick: (Float) -> Unit = {}) =
-            with(binding) {
+        fun bind(
+            item: SubtitleObj.Result.VideoInfo.CaptionResult.Results.Captions,
+            currentPosition: Int,
+            onItemClick: (SubtitleObj.Result.VideoInfo.CaptionResult.Results.Captions) -> Unit
+        ) = with(binding) {
                 val context = root.context
                 tvSubtitle.text = item.content
                 tvPos.text = (adapterPosition + 1).toString()
 
-                if (currentPosition == adapterPosition){
+                if (currentPosition == adapterPosition) {
                     root.setBackgroundColor(context.getColor(android.R.color.darker_gray))
                 } else {
                     root.setBackgroundColor(context.getColor(android.R.color.transparent))
                 }
 
                 root.setOnClickListener {
-                    onItemClick(item.miniSecond.toFloat())
+                    onItemClick(item)
                 }
             }
 
@@ -58,10 +63,12 @@ class SubtitleAdapter(
         super.onViewAttachedToWindow(holder)
         Log.d("RecycleViewAdapter", "進去onViewAttachedToWindow")
     }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(subtitleObj[position], currentPosition, onItemClick)
         Log.d("RecycleViewAdapter", "進去onBindViewHolder: ${position + 1}")
     }
+
     override fun getItemCount() = subtitleObj.size
 }
 
